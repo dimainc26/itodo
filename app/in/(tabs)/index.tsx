@@ -1,16 +1,33 @@
+import { createHomeStyles } from "@/assets/styles/home.style";
 import { useTheme } from "@/hooks/useTheme";
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Index = () => {
-  const { toggleDarkMode } = useTheme();
+  const { toggleDarkMode, colors } = useTheme();
+
+  // const addTodo = useMutation(api.todos.addTodo);
+  // const clearAllTodos = useMutation(api.todos.clearAllTodos);
+
+  const homeStyles = createHomeStyles(colors);
+
   return (
-    <View className="" style={styles.container}>
-      <Text>in tabs index</Text>
-      <Pressable style={styles.button} onPress={toggleDarkMode}>
-        <Text>Switch Theme</Text>
-      </Pressable>
-    </View>
+    <LinearGradient
+      colors={colors.gradients.background}
+      style={homeStyles.container}
+    >
+      <StatusBar barStyle={colors.statusBarStyle} />
+      <SafeAreaView style={homeStyles.safeArea}>
+        <View>
+          <Text>in tabs index</Text>
+          <Pressable style={styles.button} onPress={toggleDarkMode}>
+            <Text>Add todo</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 

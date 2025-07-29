@@ -1,12 +1,12 @@
 import React from "react";
 import { Text, View } from "react-native";
 
-const settings = () => {
+const calendar = () => {
   return (
     <View>
-      <Text>settings</Text>
+      <Text>calendar</Text>
     </View>
   );
 };
 
-export default settings;
+export default calendar;

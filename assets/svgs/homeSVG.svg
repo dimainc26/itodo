@@ -1,0 +1,7 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Forma principale della casa arrotondata -->
+  <path d="M256 16c8 0 16 3 22 8l166 134c9 7 14 18 12 29l-26 168c-5 33-33 57-66 57H148c-33 0-61-24-66-57L56 187c-2-11 3-22 12-29l166-134c6-5 14-8 22-8z"/>
+  
+  <!-- Rettangolo centrale con bordi arrotondati -->
+  <rect x="236" y="220" width="40" height="100" rx="20" fill="#8168ceff"/>
+</svg>

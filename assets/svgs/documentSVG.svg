@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 97 93" fill="none">
+  <!-- Corpo del documento -->
+  <path
+    d="M12 2
+       H65
+       L97 34
+       V83
+       C97 88.5228 92.5228 93 87 93
+       H12
+       C6.47715 93 2 88.5228 2 83
+       V12
+       C2 6.47715 6.47715 2 12 2
+       Z"
+    fill="#B5A0F3"/>
+  <!-- Angolo ripiegato -->
+  <path
+    d="M65 2
+       V34
+       H97"
+    />
+  <!-- Prima riga di testo -->
+  <rect x="20" y="50" width="50" height="6" rx="3" />
+  <!-- Seconda riga di testo -->
+  <rect x="20" y="65" width="35" height="6" rx="3" />
+</svg>
