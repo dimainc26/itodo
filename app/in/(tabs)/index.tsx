@@ -1,46 +1,33 @@
 import TaskGroup from "@/components/TaskGroup";
-import { createHomeStyles } from "@assets/styles/home.style";
+import Outside from "@/components/ui/Outside";
 import InProgress from "@components/InProgress";
 import TodayTask from "@components/TodayTask";
 import { UserHeader } from "@components/UserHeader";
-import { useTheme } from "@hooks/useTheme";
-import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { FlatList, StatusBar } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { FlatList } from "react-native";
 
 const Index = () => {
-  const { colors } = useTheme();
-
   // const addTodo = useMutation(api.todos.addTodo);
   // const clearAllTodos = useMutation(api.todos.clearAllTodos);
 
-  const homeStyles = createHomeStyles(colors);
-
   return (
-    <LinearGradient
-      colors={colors.gradients.background}
-      style={homeStyles.container}
-    >
-      <StatusBar barStyle={colors.statusBarStyle} />
-      <SafeAreaView style={homeStyles.safeArea}>
-        <UserHeader />
+    <Outside>
+      <UserHeader />
 
-        <FlatList
-          data={[]}
-          keyExtractor={undefined}
-          renderItem={null}
-          contentContainerStyle={{ gap: 16, paddingBottom: 32 }}
-          ListHeaderComponent={
-            <>
-              <TodayTask />
-              <InProgress />
-              <TaskGroup />
-            </>
-          }
-        />
-      </SafeAreaView>
-    </LinearGradient>
+      <FlatList
+        data={[]}
+        keyExtractor={undefined}
+        renderItem={null}
+        contentContainerStyle={{ gap: 16, paddingBottom: 32 }}
+        ListHeaderComponent={
+          <>
+            <TodayTask />
+            <InProgress />
+            <TaskGroup />
+          </>
+        }
+      />
+    </Outside>
   );
 };
 
