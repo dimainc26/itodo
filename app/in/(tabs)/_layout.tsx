@@ -2,11 +2,12 @@ import CurvedTabBackground from "@/components/CurvedTabBackground";
 import { CalendarSVG, DocumentSVG, HomeSVG, UserSVG } from "@/data/icons";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 export default function TabsLayout() {
+  const route = useRouter();
   return (
     <View style={{ flex: 1 }}>
       <Tabs
@@ -54,7 +55,7 @@ export default function TabsLayout() {
           options={{
             tabBarButton: () => (
               <View style={styles.fabWrapper}>
-                <TouchableOpacity onPress={() => console.log("Add pressed")}>
+                <TouchableOpacity onPress={() => route.push("/in/(tabs)/add")}>
                   <LinearGradient
                     colors={["#A084E8", "#8C52FF"]}
                     style={styles.fabButton}

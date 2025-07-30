@@ -1,5 +1,5 @@
-import CalendarHeader from "@/components/CalendarHeader";
 import DateSelector from "@/components/DateSelector";
+import SharedHeader from "@/components/SharedHeader";
 import { TabFilter } from "@/components/TabFilter";
 import TaskList from "@/components/TaskList";
 import { TASK_FILTER_TABS } from "@/constants/filters";
@@ -11,7 +11,7 @@ const Calendar = () => {
   const [activeTab, setActiveTab] = useState("All");
   return (
     <Outside>
-      <CalendarHeader />
+      <SharedHeader title="Today’s Tasks" />
       <FlatList
         data={[]}
         keyExtractor={undefined}

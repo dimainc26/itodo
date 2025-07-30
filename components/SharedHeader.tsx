@@ -5,7 +5,11 @@ import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import NotificationBell from "./NotificationBell";
 
-const CalendarHeader = () => {
+interface SharedHeaderProps {
+  title: string;
+}
+
+const SharedHeader = ({ title }: SharedHeaderProps) => {
   const { colors } = useTheme();
   const styles = createCalendarHeaderStyles(colors);
 
@@ -15,11 +19,11 @@ const CalendarHeader = () => {
         <LeftSVG width={24} height={24} fill={colors.text} />
       </TouchableOpacity>
 
-      <Text style={styles.title}>Today’s Tasks</Text>
+      <Text style={styles.title}>{title}</Text>
 
       <NotificationBell />
     </View>
   );
 };
 
-export default CalendarHeader;
+export default SharedHeader;
