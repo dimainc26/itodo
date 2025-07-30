@@ -1,3 +1,4 @@
+import TaskGroup from "@/components/TaskGroup";
 import { createHomeStyles } from "@assets/styles/home.style";
 import InProgress from "@components/InProgress";
 import TodayTask from "@components/TodayTask";
@@ -5,7 +6,7 @@ import { UserHeader } from "@components/UserHeader";
 import { useTheme } from "@hooks/useTheme";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { StatusBar } from "react-native";
+import { FlatList, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Index = () => {
@@ -24,8 +25,20 @@ const Index = () => {
       <StatusBar barStyle={colors.statusBarStyle} />
       <SafeAreaView style={homeStyles.safeArea}>
         <UserHeader />
-        <TodayTask />
-        <InProgress />
+
+        <FlatList
+          data={[]}
+          keyExtractor={undefined}
+          renderItem={null}
+          contentContainerStyle={{ gap: 16, paddingBottom: 32 }}
+          ListHeaderComponent={
+            <>
+              <TodayTask />
+              <InProgress />
+              <TaskGroup />
+            </>
+          }
+        />
       </SafeAreaView>
     </LinearGradient>
   );
