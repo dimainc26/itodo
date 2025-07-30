@@ -1,13 +1,23 @@
 import { createTodayTaskStyles } from "@/assets/styles/todayTask.style";
+import { api } from "@/convex/_generated/api";
 import { useTheme } from "@/hooks/useTheme";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "convex/react";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import CircularProgressIndicator from "./ui/CircularProgressIndicator";
-
 const TodayCard = () => {
   const { colors } = useTheme();
   const styles = createTodayTaskStyles(colors);
+
+  const todos = useQuery(api.todos.getTodos);
+
+  const completedCount = todos
+    ? todos.filter((todo) => todo.isCompleted).length
+    : 0;
+  const totalCount = todos ? todos.length : 0;
+  const processPercentage =
+    totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
   const onPress = () => {};
 
@@ -25,7 +35,7 @@ const TodayCard = () => {
         <CircularProgressIndicator
           size={72}
           strokeWidth={8}
-          progress={86}
+          progress={processPercentage}
           textColor="#ffffff"
         />
         <TouchableOpacity style={styles.menuButton}>

@@ -8,8 +8,8 @@ export const createTodayTaskStyles = (colors: ColorScheme) => {
       borderRadius: 24,
       padding: 20,
       marginHorizontal: 24,
-      marginBottom: 24,
       maxHeight: 160,
+      marginVertical: 12,
     },
     left: {
       height: "100%",
