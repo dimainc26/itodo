@@ -23,7 +23,7 @@ const LabeledTextInput = ({ label, multiline = false, ...props }: Props) => {
       <TextInput
         style={[styles.input, multiline && styles.multiline]}
         multiline={multiline}
-        numberOfLines={multiline ? 4 : 1}
+        numberOfLines={multiline ? 3 : 1}
         textAlignVertical={multiline ? "top" : "center"}
         placeholderTextColor={colors.textMuted}
         {...props}
@@ -61,7 +61,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>["colors"]) =>
       padding: 0,
     },
     multiline: {
-      minHeight: 100,
+      minHeight: 60,
       lineHeight: 22,
     },
   });

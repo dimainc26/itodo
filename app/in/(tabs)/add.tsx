@@ -1,6 +1,9 @@
+import DatePickerCard from "@/components/DatePickerCard";
 import LabeledTextInput from "@/components/LabeledTextInput";
+import LogoSelector from "@/components/LogoSelector";
 import TaskGroupDropdown from "@/components/TaskGroupDropdown";
 import Outside from "@/components/ui/Outside";
+import SquircleButton from "@/components/ui/SquircleButton";
 import { groupOptions } from "@/mocks/groupList";
 import SharedHeader from "@components/SharedHeader";
 import React, { useState } from "react";
@@ -15,8 +18,12 @@ import {
 
 const Add = () => {
   const [selectedGroup, setSelectedGroup] = useState(groupOptions[0]);
+
   const [projectName, setProjectName] = useState("");
   const [description, setDescription] = useState("");
+
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
 
   return (
     <Outside>
@@ -28,7 +35,8 @@ const Add = () => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 80 }}
+            style={{}}
           >
             <SharedHeader title="Add Task" />
 
@@ -61,6 +69,26 @@ const Add = () => {
                 onChangeText={setDescription}
               />
             </View>
+            <View style={{ paddingHorizontal: 24 }}>
+              <DatePickerCard
+                label="Start Date"
+                date={startDate}
+                onChange={setStartDate}
+              />
+              <DatePickerCard
+                label="End Date"
+                date={endDate}
+                onChange={setEndDate}
+              />
+            </View>
+            <View
+              style={{
+                paddingHorizontal: 24,
+              }}
+            >
+              <LogoSelector />
+            </View>
+            <SquircleButton onPress={() => {}} title="Add task" />
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
