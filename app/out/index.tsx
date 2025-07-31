@@ -1,11 +1,12 @@
+import Onboarding from "@/components/Onboarding";
+import Outside from "@/components/ui/Outside";
 import React from "react";
-import { Text, View } from "react-native";
 
 const index = () => {
   return (
-    <View>
-      <Text>Out index</Text>
-    </View>
+    <Outside>
+      <Onboarding />
+    </Outside>
   );
 };
 

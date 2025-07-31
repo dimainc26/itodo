@@ -37,6 +37,7 @@ const Add = () => {
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ flexGrow: 1, paddingBottom: 80 }}
             style={{}}
+            showsVerticalScrollIndicator={false}
           >
             <SharedHeader title="Add Task" />
 
