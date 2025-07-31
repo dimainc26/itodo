@@ -1,6 +1,7 @@
 import DatePickerCard from "@/components/DatePickerCard";
 import LabeledTextInput from "@/components/LabeledTextInput";
 import LogoSelector from "@/components/LogoSelector";
+import PrioritySelector, { PriorityLevel } from "@/components/PrioritySelector";
 import TaskGroupDropdown from "@/components/TaskGroupDropdown";
 import Outside from "@/components/ui/Outside";
 import SquircleButton from "@/components/ui/SquircleButton";
@@ -25,6 +26,8 @@ const Add = () => {
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
 
+  const [priority, setPriority] = useState<PriorityLevel>("Medium");
+
   return (
     <Outside>
       <KeyboardAvoidingView
@@ -40,19 +43,27 @@ const Add = () => {
             showsVerticalScrollIndicator={false}
           >
             <SharedHeader title="Add Task" />
-
             <TaskGroupDropdown
               groups={groupOptions}
               selectedGroupId={selectedGroup.id}
               onSelect={(group) => setSelectedGroup(group)}
             />
+            <View
+              style={{
+                paddingHorizontal: 24,
+                paddingTop: 24,
+                paddingBottom: 12,
+              }}
+            >
+              <PrioritySelector selected={priority} onSelect={setPriority} />
+            </View>
 
             <View
               style={{
                 paddingHorizontal: 24,
                 flexDirection: "column",
                 gap: 12,
-                paddingTop: 24,
+                paddingTop: 12,
               }}
             >
               <LabeledTextInput
