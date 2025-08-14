@@ -46,7 +46,7 @@ export default function TabsLayout() {
                 return <CalendarSVG {...iconProps} />;
               case "documents":
                 return <DocumentSVG {...iconProps} />;
-              case "users":
+              case "profile":
                 return <UserSVG {...iconProps} />;
               default:
                 return null;
@@ -74,7 +74,7 @@ export default function TabsLayout() {
           }}
         />
         <Tabs.Screen name="documents" />
-        <Tabs.Screen name="users" />
+        <Tabs.Screen name="profile" />
       </Tabs>
 
       {!isAddScreen && <CurvedTabBackground />}

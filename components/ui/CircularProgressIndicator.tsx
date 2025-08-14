@@ -1,14 +1,16 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
 interface CircularProgressProps {
   size?: number;
   strokeWidth?: number;
-  progress: number; // valore da 0 a 100
+  progress: number; // da 0 a 100
   backgroundColor?: string;
   progressColor?: string;
   textColor?: string;
+  children?: ReactNode;
+  showPercentage?: boolean; // mostra testo percentuale (default true)
 }
 
 const CircularProgressIndicator: React.FC<CircularProgressProps> = ({
@@ -18,6 +20,8 @@ const CircularProgressIndicator: React.FC<CircularProgressProps> = ({
   backgroundColor = "#DDD6FE",
   progressColor = "#8C52FF",
   textColor = "white",
+  children,
+  showPercentage = true,
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -55,11 +59,16 @@ const CircularProgressIndicator: React.FC<CircularProgressProps> = ({
           origin={`${size / 2}, ${size / 2}`}
         />
       </Svg>
+
       <View style={StyleSheet.absoluteFillObject}>
-        <View style={styles.centerTextContainer}>
-          <Text
-            style={[styles.progressText, { color: textColor }]}
-          >{`${Math.round(progress)}%`}</Text>
+        <View style={styles.center}>
+          {children
+            ? children
+            : showPercentage && (
+                <Text style={[styles.text, { color: textColor }]}>
+                  {`${Math.round(progress)}%`}
+                </Text>
+              )}
         </View>
       </View>
     </View>
@@ -67,12 +76,12 @@ const CircularProgressIndicator: React.FC<CircularProgressProps> = ({
 };
 
 const styles = StyleSheet.create({
-  centerTextContainer: {
+  center: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },
-  progressText: {
+  text: {
     fontSize: 16,
     fontWeight: "700",
   },
