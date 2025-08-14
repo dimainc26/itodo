@@ -10,18 +10,20 @@ import {
 interface SquircleButtonProps {
   title: string;
   onPress: () => void;
+  disabled?: boolean;
 }
 
-const SquircleButton = ({ onPress, title }: SquircleButtonProps) => {
+const SquircleButton = ({ onPress, title, disabled }: SquircleButtonProps) => {
   const { width, height } = useWindowDimensions();
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.8}
       style={styles.container}
+      disabled={disabled}
     >
       <View style={styles.content}>
-        <SquircleSVG width={width} />
+        <SquircleSVG width={width} fill={disabled ? "green" : "red"} />
         <Text style={styles.text}>{title}</Text>
       </View>
     </TouchableOpacity>

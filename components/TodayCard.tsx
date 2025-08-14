@@ -10,7 +10,7 @@ const TodayCard = () => {
   const { colors } = useTheme();
   const styles = createTodayTaskStyles(colors);
 
-  const todos = useQuery(api.todos.getTodos);
+  const todos = useQuery(api.todos.getTodos, {});
 
   const completedCount = todos
     ? todos.filter((todo) => todo.isCompleted).length
@@ -24,7 +24,7 @@ const TodayCard = () => {
   return (
     <View style={{ flexDirection: "row", height: "100%" }}>
       <View style={styles.left}>
-        <Text style={styles.title}>Your today’s task{"\n"}almost done!</Text>
+        <Text style={styles.title}>Your todays task{"\n"}almost done!</Text>
         <View style={styles.leftContent}>
           <TouchableOpacity style={styles.button} onPress={onPress}>
             <Text style={styles.buttonText}>View Task</Text>
