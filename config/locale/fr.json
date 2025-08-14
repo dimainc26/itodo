@@ -1,0 +1,10 @@
+{
+  "settings": {
+    "title": "Paramètres de l'application",
+    "appearance": "Apparence",
+    "darkMode": "Mode Sombre",
+    "general": "Général",
+    "language": "Langue",
+    "enableNotifications": "Activer les Notifications"
+  }
+}

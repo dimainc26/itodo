@@ -1,27 +1,38 @@
 import { createAppSettingsStyle } from "@/assets/styles/appSettings.style";
+import LanguageDropdown from "@/components/LanguageDropdown";
 import SharedHeader from "@/components/SharedHeader";
 import Outside from "@/components/ui/Outside";
+import i18n from "@/config/i18n";
 import { useTheme } from "@/hooks/useTheme";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Switch, Text, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Switch, Text, View } from "react-native";
+
+const LANGUAGE_LABEL: Record<string, string> = {
+  en: "English",
+  fr: "Français",
+  it: "Italiano",
+};
 
 const AppSettings = () => {
   const { colors, isDarkMode, toggleDarkMode } = useTheme();
   const styles = createAppSettingsStyle(colors);
+  const { t } = useTranslation();
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [selectedLanguage, setSelectedLanguage] = useState("English");
+  const currentLangLabel = LANGUAGE_LABEL[i18n.language] ?? "English";
 
   return (
     <Outside>
-      <SharedHeader title="App Settings" />
+      <SharedHeader title={t("settings.title")} />
       <View style={styles.container}>
-        <Text style={styles.sectionTitle}>Appearance</Text>
+        <Text style={styles.sectionTitle}>{t("settings.appearance")}</Text>
+
         <View style={styles.row}>
           <View style={styles.rowLeft}>
             <Feather name="moon" size={20} color={colors.text} />
-            <Text style={styles.rowLabel}>Dark Mode</Text>
+            <Text style={styles.rowLabel}>{t("settings.darkMode")}</Text>
           </View>
           <Switch
             trackColor={{ false: colors.border, true: colors.primaryMuted }}
@@ -32,15 +43,8 @@ const AppSettings = () => {
           />
         </View>
 
-        <Text style={styles.sectionTitle}>General</Text>
-
-        <TouchableOpacity style={styles.row} activeOpacity={0.8}>
-          <View style={styles.rowLeft}>
-            <Ionicons name="language-outline" size={20} color={colors.text} />
-            <Text style={styles.rowLabel}>Language</Text>
-          </View>
-          <Text style={styles.rowRightValue}>{selectedLanguage}</Text>
-        </TouchableOpacity>
+        <Text style={styles.sectionTitle}>{t("settings.general")}</Text>
+        <LanguageDropdown />
 
         <View style={styles.row}>
           <View style={styles.rowLeft}>
@@ -49,7 +53,9 @@ const AppSettings = () => {
               size={20}
               color={colors.text}
             />
-            <Text style={styles.rowLabel}>Enable Notifications</Text>
+            <Text style={styles.rowLabel}>
+              {t("settings.enableNotifications")}
+            </Text>
           </View>
           <Switch
             trackColor={{ false: colors.border, true: colors.primaryMuted }}

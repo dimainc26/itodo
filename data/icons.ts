@@ -9,12 +9,19 @@ import LeftSVG from "@assets/svgs/leftSVG.svg";
 import NotificationSVG from "@assets/svgs/notificationSVG.svg";
 import SquircleSVG from "@assets/svgs/squircleSVG.svg";
 
+import FrenchFlagSVG from "@assets/svgs/flags/france-flag.svg";
+import ItalianFlagSVG from "@assets/svgs/flags/italy-flag.svg";
+import EnglishjFlagSVG from "@assets/svgs/flags/usa-flag.svg";
+
 export {
   BupSVG,
   CalendarSVG,
   DocumentSVG,
   DownSVG,
+  EnglishjFlagSVG,
+  FrenchFlagSVG,
   HomeSVG,
+  ItalianFlagSVG,
   LeftSVG,
   NotificationSVG,
   SquircleSVG,
