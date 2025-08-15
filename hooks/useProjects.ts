@@ -4,10 +4,11 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 
 export type ProjectStatus = "to-do" | "in progress" | "done";
-// ⚠️ Se nel tuo schema c'è un literal diverso (es. typo), aggiorna qui di conseguenza.
+export type IconFamily = "ionicons" | "feather" | "materialCommunity";
 
 export type AddProjectInput = {
   name: string;
+  iconFamily: IconFamily;
   iconType: string; // es. "folder-outline"
   color: string; // es. "#8B5CF6"
   status?: ProjectStatus;

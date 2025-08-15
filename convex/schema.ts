@@ -6,7 +6,13 @@ export default defineSchema({
   projects: defineTable({
     name: v.string(), // nome progetto
     description: v.optional(v.string()),
-    iconType: v.string(), // es. "briefcase-outline"
+    iconFamily: v.union(
+      // ✅ nuova proprietà
+      v.literal("ionicons"),
+      v.literal("feather"),
+      v.literal("materialCommunity")
+    ),
+    iconType: v.string(), // es. "briefcase-outline" (ionicons) o "briefcase" (feather)
     color: v.string(), // es. "#8B5CF6"
     status: v.union(
       v.literal("to-do"),

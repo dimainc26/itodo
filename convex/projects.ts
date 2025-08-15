@@ -8,22 +8,31 @@ const StatusV = v.union(
   v.literal("done")
 );
 
+/** Librerie icone supportate */
+const IconFamilyV = v.union(
+  v.literal("ionicons"),
+  v.literal("feather"),
+  v.literal("materialCommunity") // puoi aggiungerne altre qui
+);
+
 /** Crea progetto */
 export const addProject = mutation({
   args: {
     name: v.string(),
-    iconType: v.string(), // es. "briefcase-outline"
+    iconFamily: IconFamilyV, // ✅ nuovo campo obbligatorio
+    iconType: v.string(), // es. "briefcase-outline" (ionicons) o "briefcase" (feather)
     color: v.string(), // es. "#8B5CF6"
     status: v.optional(StatusV),
-    description: v.optional(v.string()), // ✅ nuovo campo opzionale
+    description: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const id = await ctx.db.insert("projects", {
       name: args.name,
+      iconFamily: args.iconFamily, // ✅ persistito
       iconType: args.iconType,
       color: args.color,
       status: args.status ?? "to-do",
-      description: args.description ?? "", // ✅ salvato nel db
+      description: args.description ?? "",
       createdAt: Date.now(),
     });
     return id;
@@ -36,10 +45,11 @@ export const updateProject = mutation({
     id: v.id("projects"),
     payload: v.object({
       name: v.optional(v.string()),
+      iconFamily: v.optional(IconFamilyV), // ✅ aggiornabile
       iconType: v.optional(v.string()),
       color: v.optional(v.string()),
       status: v.optional(StatusV),
-      description: v.optional(v.string()), // ✅ aggiornabile
+      description: v.optional(v.string()),
     }),
   },
   handler: async (ctx, { id, payload }) => {
@@ -49,7 +59,6 @@ export const updateProject = mutation({
   },
 });
 
-/** Elimina singolo progetto */
 export const deleteProject = mutation({
   args: { id: v.id("projects") },
   handler: async (ctx, { id }) => {
@@ -57,18 +66,14 @@ export const deleteProject = mutation({
   },
 });
 
-/** Elimina tutti i progetti (operazione distruttiva) */
 export const clearAllProjects = mutation({
   handler: async (ctx) => {
     const projs = await ctx.db.query("projects").collect();
-    for (const p of projs) {
-      await ctx.db.delete(p._id);
-    }
+    for (const p of projs) await ctx.db.delete(p._id);
     return { deletedProjects: projs.length };
   },
 });
 
-/** Lista progetti */
 export const getProjects = query({
   args: {},
   handler: async (ctx) => {

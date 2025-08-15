@@ -1,13 +1,16 @@
 import { useTheme } from "@/hooks/useTheme";
 import { createInProgressStyles } from "@assets/styles/inProgress.style";
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import { Text, View } from "react-native";
+
+type IconFamily = "ionicons" | "feather" | "materialCommunity";
 
 interface Props {
   title: string;
   projectType: string;
-  iconName: keyof typeof Feather.glyphMap;
+  iconFamily: IconFamily; // nuova prop
+  iconType: string; // es. "folder-outline"
   progress: number;
   backgroundColor: string;
   iconColor: string;
@@ -17,7 +20,8 @@ interface Props {
 const InProgressCard = ({
   title,
   projectType,
-  iconName,
+  iconFamily,
+  iconType,
   progress,
   backgroundColor,
   iconColor,
@@ -26,12 +30,42 @@ const InProgressCard = ({
   const { colors } = useTheme();
   const styles = createInProgressStyles(colors);
 
+  const renderIcon = () => {
+    switch (iconFamily) {
+      case "feather":
+        return (
+          <Feather
+            name={iconType as keyof typeof Feather.glyphMap}
+            size={16}
+            color={colors.primary}
+          />
+        );
+      case "materialCommunity":
+        return (
+          <MaterialCommunityIcons
+            name={iconType as keyof typeof MaterialCommunityIcons.glyphMap}
+            size={16}
+            color={colors.primary}
+          />
+        );
+      case "ionicons":
+      default:
+        return (
+          <Ionicons
+            name={iconType as keyof typeof Ionicons.glyphMap}
+            size={16}
+            color={colors.primary}
+          />
+        );
+    }
+  };
+
   return (
     <View style={[styles.card, { backgroundColor }]}>
       <View style={styles.cardHeader}>
         <Text style={styles.cardProjectType}>{projectType}</Text>
         <View style={[styles.cardIconWrapper, { backgroundColor: iconColor }]}>
-          <Feather name={iconName} size={16} color={colors.primary} />
+          {renderIcon()}
         </View>
       </View>
       <Text style={styles.cardTitle}>{title}</Text>

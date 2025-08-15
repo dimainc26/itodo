@@ -7,9 +7,6 @@ import React from "react";
 import { FlatList } from "react-native";
 
 const Index = () => {
-  // const addTodo = useMutation(api.todos.addTodo);
-  // const clearAllTodos = useMutation(api.todos.clearAllTodos);
-
   return (
     <Outside>
       <UserHeader />
