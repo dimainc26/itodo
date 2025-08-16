@@ -4,10 +4,19 @@ import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
-const LogoSelector = () => {
+type Asset = { uri: string; fileName?: string; mimeType?: string };
+
+type Props = {
+  onImageSelected?: (file: {
+    uri: string;
+    name?: string;
+    type?: string;
+  }) => void;
+};
+
+const LogoSelector = ({ onImageSelected }: Props) => {
   const { colors } = useTheme();
   const styles = createLogoSelectorStyles(colors);
-
   const [logo, setLogo] = useState<string | null>(null);
 
   const pickImage = async () => {
@@ -19,7 +28,13 @@ const LogoSelector = () => {
     });
 
     if (!result.canceled) {
-      setLogo(result.assets[0].uri);
+      const asset = result.assets[0] as Asset;
+      setLogo(asset.uri);
+      onImageSelected?.({
+        uri: asset.uri,
+        name: asset.fileName ?? "project.jpg",
+        type: asset.mimeType ?? "image/jpeg",
+      });
     }
   };
 
@@ -34,12 +49,18 @@ const LogoSelector = () => {
       </View>
 
       <View style={styles.infoWrapper}>
-        <Text style={[styles.nameLine, styles.nameGreen]}>Grocery</Text>
-        <Text style={[styles.nameLine, styles.nameRed]}>shop</Text>
+        <Text style={[styles.nameLine, styles.nameGreen]}>Project</Text>
+        <Text style={[styles.nameLine, styles.nameRed]}>image</Text>
       </View>
 
-      <TouchableOpacity onPress={pickImage} style={styles.button}>
-        <Text style={styles.buttonText}>Change Logo</Text>
+      <TouchableOpacity
+        onPress={pickImage}
+        style={styles.button}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.buttonText}>
+          {logo ? "Change Image" : "Choose Image"}
+        </Text>
       </TouchableOpacity>
     </View>
   );

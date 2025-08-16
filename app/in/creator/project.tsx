@@ -1,13 +1,20 @@
 import { createDocumentsStyle } from "@/assets/styles/documents.style";
+import LabeledTextInput from "@/components/LabeledTextInput";
+import LogoSelector from "@/components/LogoSelector";
+import SharedHeader from "@/components/SharedHeader";
+import Outside from "@/components/ui/Outside";
+import SquircleButton from "@/components/ui/SquircleButton";
+import { COLOR_PALETTE } from "@/constants/colorPalette";
+import { FAMILY_COMPONENT } from "@/constants/iconFamily";
+import type { Id } from "@/convex/_generated/dataModel";
 import { IconFamily, ProjectStatus, useProjects } from "@/hooks/useProjects";
 import { useTheme } from "@/hooks/useTheme";
-import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useMemo, useState } from "react";
+import * as FileSystem from "expo-file-system";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   FlatList,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -15,36 +22,27 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import LabeledTextInput from "../LabeledTextInput";
-import SquircleButton from "../ui/SquircleButton";
 
-const COLOR_PALETTE = [
-  "#8B5CF6",
-  "#06B6D4",
-  "#F59E0B",
-  "#EF4444",
-  "#10B981",
-  "#3B82F6",
-  "#F97316",
-  "#14B8A6",
-];
+FileSystem;
 
-const FAMILY_COMPONENT: Record<IconFamily, any> = {
-  ionicons: Ionicons,
-  feather: Feather,
-  materialCommunity: MaterialCommunityIcons,
-};
+/* -------------------- small debounce hook -------------------- */
 
-interface Props {
-  visible: boolean;
-  onClose: () => void;
+function useDebouncedValue<T>(value: T, delay = 220) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return debounced;
 }
 
-const CreateProjectModal = ({ visible, onClose }: Props) => {
+/* --------------------------- Screen --------------------------- */
+
+type PickedFile = { uri: string; name?: string; type?: string };
+
+const Project = () => {
   const { colors } = useTheme();
   const styles = createDocumentsStyle(colors);
-  const insets = useSafeAreaInsets();
 
   // form state
   const [name, setName] = useState("");
@@ -54,30 +52,72 @@ const CreateProjectModal = ({ visible, onClose }: Props) => {
   const [pickedColor, setPickedColor] = useState<string>(COLOR_PALETTE[0]);
   const [status, setStatus] = useState<ProjectStatus>("to-do");
   const [saving, setSaving] = useState(false);
+  const [imageStorageId, setImageStorageId] = useState<
+    Id<"_storage"> | undefined
+  >(undefined);
 
-  // Convex
-  const { add } = useProjects();
+  const { add, getUploadUrl } = useProjects();
 
-  // Icon component & glyphs
+  // Famiglia icone e glyph map
   const IconComp = FAMILY_COMPONENT[iconFamily];
-  const allIconNames = useMemo(() => {
-    const glyphMap = IconComp?.glyphMap as Record<string, number> | undefined;
-    return glyphMap ? Object.keys(glyphMap) : [];
+
+  const glyphMap: Record<string, number> = useMemo(() => {
+    const gm = (IconComp?.glyphMap ?? {}) as Record<string, number>;
+    return gm;
   }, [IconComp]);
 
-  const [iconSearch, setIconSearch] = useState("");
-  const filteredIconNames = useMemo(() => {
-    const q = iconSearch.trim().toLowerCase();
-    const list = q.length
-      ? allIconNames.filter((n) => n.toLowerCase().includes(q))
-      : allIconNames;
-    return list.slice(0, 300);
-  }, [allIconNames, iconSearch]);
+  const allIconNames = useMemo(() => Object.keys(glyphMap), [glyphMap]);
 
-  const isValidIcon = useMemo(() => {
-    const gm = IconComp?.glyphMap as Record<string, number> | undefined;
-    return !!(gm && gm[iconType]);
-  }, [IconComp, iconType]);
+  const [iconSearch, setIconSearch] = useState("");
+  const debouncedQuery = useDebouncedValue(iconSearch, 220);
+
+  // Filtra nomi (solo client-side)
+  const filteredIconNames = useMemo(() => {
+    if (!debouncedQuery) return allIconNames.slice(0, 300);
+    const q = debouncedQuery.trim().toLowerCase();
+    const list = allIconNames.filter((n) => n.toLowerCase().includes(q));
+    return list.slice(0, 300);
+  }, [allIconNames, debouncedQuery]);
+
+  const isValidIcon = useMemo(() => !!glyphMap[iconType], [glyphMap, iconType]);
+
+  // Quando cambio famiglia, se l'icona corrente non esiste, scegline una valida
+  const lastFamilyRef = useRef<IconFamily>(iconFamily);
+  useEffect(() => {
+    if (lastFamilyRef.current !== iconFamily) {
+      lastFamilyRef.current = iconFamily;
+      if (!glyphMap[iconType]) {
+        const first = allIconNames[0] ?? "folder";
+        setIconType(first);
+      }
+    }
+  }, [iconFamily, glyphMap, allIconNames, iconType]);
+
+  // Upload immagine -> Convex storage (presigned URL)
+  const handleImageSelected = async (file: PickedFile) => {
+    try {
+      const uploadUrl = await getUploadUrl();
+
+      const result = await FileSystem.uploadAsync(uploadUrl, file.uri, {
+        httpMethod: "POST",
+        uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+        fieldName: "file", // Convex si aspetta "file"
+        mimeType: file.type ?? "image/jpeg",
+        parameters: {
+          // opzionale: altri campi form se ti servono
+        },
+      });
+
+      if (result.status !== 200) {
+        throw new Error(`Upload failed: ${result.status}`);
+      }
+
+      const { storageId } = JSON.parse(result.body);
+      setImageStorageId(storageId as Id<"_storage">);
+    } catch (e: any) {
+      Alert.alert("Upload error", e?.message ?? "Failed to upload image");
+    }
+  };
 
   const canSave = useMemo(
     () => name.trim().length > 0 && !!iconType && !!pickedColor && !!status,
@@ -95,6 +135,7 @@ const CreateProjectModal = ({ visible, onClose }: Props) => {
         color: pickedColor,
         status,
         description,
+        imageStorageId,
       });
       // reset
       setName("");
@@ -104,7 +145,8 @@ const CreateProjectModal = ({ visible, onClose }: Props) => {
       setPickedColor(COLOR_PALETTE[0]);
       setStatus("to-do");
       setIconSearch("");
-      onClose();
+      setImageStorageId(undefined);
+      Alert.alert("Success", "Project created.");
     } catch (e: any) {
       Alert.alert("Error", e?.message ?? "Failed to create project.");
     } finally {
@@ -113,23 +155,24 @@ const CreateProjectModal = ({ visible, onClose }: Props) => {
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <Pressable
-          style={styles.modalContent}
-          onPress={(e) => e.stopPropagation()}
+    <Outside>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={0}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 24 }}
+          showsVerticalScrollIndicator={false}
         >
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            keyboardVerticalOffset={0}
-          >
-            <Text style={styles.modalTitle}>Create New Project</Text>
+          <SharedHeader title="Create New Project" />
 
+          {/* TEXTS */}
+          <View style={{ paddingHorizontal: 24 }}>
+            <Text style={[styles.modalTitle, { fontSize: 13, marginTop: 8 }]}>
+              Texts
+            </Text>
             <LabeledTextInput
               label="Project Name"
               placeholder="Project name..."
@@ -144,18 +187,14 @@ const CreateProjectModal = ({ visible, onClose }: Props) => {
               onChangeText={setDescription}
               multiline
             />
+          </View>
 
-            {/* Icon Family Picker */}
+          {/* ICON FAMILY */}
+          <View style={{ paddingHorizontal: 24 }}>
             <Text style={[styles.modalTitle, { fontSize: 13, marginTop: 8 }]}>
               Icon Family
             </Text>
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 8,
-                paddingBottom: 8,
-              }}
-            >
+            <View style={{ flexDirection: "row", gap: 8, paddingBottom: 8 }}>
               {(
                 ["ionicons", "feather", "materialCommunity"] as IconFamily[]
               ).map((fam) => {
@@ -165,13 +204,7 @@ const CreateProjectModal = ({ visible, onClose }: Props) => {
                     key={fam}
                     onPress={() => {
                       setIconFamily(fam);
-                      const gm = FAMILY_COMPONENT[fam]?.glyphMap as
-                        | Record<string, number>
-                        | undefined;
-                      if (!gm || !gm[iconType]) {
-                        const first = gm ? Object.keys(gm)[0] : "folder";
-                        setIconType(first);
-                      }
+                      // l'effetto sopra corregge l'iconType se non valido
                     }}
                     style={{
                       paddingHorizontal: 12,
@@ -196,8 +229,10 @@ const CreateProjectModal = ({ visible, onClose }: Props) => {
                 );
               })}
             </View>
+          </View>
 
-            {/* Icon preview + search */}
+          {/* ICON SEARCH + PREVIEW */}
+          <View style={{ paddingHorizontal: 24 }}>
             <View
               style={{
                 paddingBottom: 8,
@@ -236,6 +271,8 @@ const CreateProjectModal = ({ visible, onClose }: Props) => {
                 onChangeText={setIconSearch}
                 placeholder="Search icon name…"
                 placeholderTextColor={colors.textMuted}
+                autoCorrect={false}
+                autoCapitalize="none"
                 style={{
                   flex: 1,
                   height: 44,
@@ -249,12 +286,16 @@ const CreateProjectModal = ({ visible, onClose }: Props) => {
               />
             </View>
 
-            {/* Icon Picker dinamico */}
+            {/* ICON PICKER (orizzontale) */}
             <FlatList
               data={filteredIconNames}
-              keyExtractor={(n) => n}
+              keyExtractor={(n, i) => `${n}-${i}`}
               horizontal
               showsHorizontalScrollIndicator={false}
+              initialNumToRender={30}
+              maxToRenderPerBatch={40}
+              windowSize={5}
+              removeClippedSubviews
               contentContainerStyle={{
                 paddingBottom: 8,
                 gap: 12,
@@ -279,9 +320,24 @@ const CreateProjectModal = ({ visible, onClose }: Props) => {
                   </Pressable>
                 );
               }}
+              ListEmptyComponent={
+                <Text style={{ color: colors.textMuted, paddingLeft: 4 }}>
+                  No icons match “{debouncedQuery}”
+                </Text>
+              }
             />
+          </View>
 
-            {/* Color Picker */}
+          {/* PROJECT IMAGE */}
+          <View style={{ paddingHorizontal: 24 }}>
+            <Text style={[styles.modalTitle, { fontSize: 13, marginTop: 8 }]}>
+              Project Image
+            </Text>
+            <LogoSelector onImageSelected={handleImageSelected} />
+          </View>
+
+          {/* COLOR PICKER */}
+          <View style={{ paddingHorizontal: 24 }}>
             <Text style={[styles.modalTitle, { fontSize: 13, marginTop: 8 }]}>
               Color
             </Text>
@@ -310,19 +366,20 @@ const CreateProjectModal = ({ visible, onClose }: Props) => {
                 })}
               </View>
             </ScrollView>
+          </View>
 
-            <View style={{ paddingHorizontal: 24 }}>
-              <SquircleButton
-                onPress={handleAddGroup}
-                title={saving ? "Saving..." : "Save"}
-                disabled={!canSave || saving || !isValidIcon}
-              />
-            </View>
-          </KeyboardAvoidingView>
-        </Pressable>
-      </Pressable>
-    </Modal>
+          {/* SAVE */}
+          <View style={{ paddingHorizontal: 24 }}>
+            <SquircleButton
+              onPress={handleAddGroup}
+              title={saving ? "Saving..." : "Save"}
+              disabled={!canSave || saving || !isValidIcon}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </Outside>
   );
 };
 
-export default CreateProjectModal;
+export default Project;

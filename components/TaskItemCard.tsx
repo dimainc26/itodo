@@ -1,5 +1,6 @@
 import { useTheme } from "@/hooks/useTheme";
 import { TaskItemProps } from "@/models/taskType";
+import { renderProjectIcon } from "@/utils/renderProjectIcon";
 import { createTaskItemStyles } from "@assets/styles/taskItem.style";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
@@ -12,6 +13,7 @@ const TaskItemCard = ({
   status,
   iconType,
   color,
+  iconFamily,
 }: TaskItemProps) => {
   const { colors } = useTheme();
   const styles = createTaskItemStyles(colors);
@@ -22,12 +24,19 @@ const TaskItemCard = ({
     "To-do": "#38BDF8",
   };
 
+  const projectIcon = renderProjectIcon({
+    family: iconFamily,
+    name: iconType,
+    color,
+    size: 16,
+  });
+
   return (
     <View style={[styles.card]}>
       <View style={styles.header}>
         <Text style={styles.project}>{project}</Text>
         <View style={[styles.iconContainer, { backgroundColor: color + "20" }]}>
-          <Ionicons name={iconType} size={16} color={color} />
+          {projectIcon}
         </View>
       </View>
 

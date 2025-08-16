@@ -55,14 +55,14 @@ const TaskList = () => {
       const status = humanStatus(t.isCompleted, t.startDate);
 
       return {
-        // campi richiesti da TaskItemCard / TaskItemProps
-        id: String(t._id), // se TaskItemProps richiede 'id'
+        id: String(t._id),
         project: projectName,
         title: t.title,
         time,
-        status, // "Done" | "In Progress" | "To-do"
+        status,
         iconType,
         color,
+        iconFamily: proj?.iconFamily,
       } as TaskItemProps;
     });
   }, [todos, projectMap]);

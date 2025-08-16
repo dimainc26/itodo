@@ -2,11 +2,13 @@ import DatePickerCard from "@/components/DatePickerCard";
 import LabeledTextInput from "@/components/LabeledTextInput";
 import LogoSelector from "@/components/LogoSelector";
 import PrioritySelector, { PriorityLevel } from "@/components/PrioritySelector";
+import SharedHeader from "@/components/SharedHeader";
 import TaskGroupDropdown from "@/components/TaskGroupDropdown";
 import Outside from "@/components/ui/Outside";
 import SquircleButton from "@/components/ui/SquircleButton";
-import SharedHeader from "@components/SharedHeader";
-import React, { useCallback, useMemo, useState } from "react";
+import { useProjects } from "@/hooks/useProjects";
+import { useTodos, type Priority } from "@/hooks/useTodos";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Keyboard,
@@ -16,10 +18,6 @@ import {
   View,
 } from "react-native";
 
-import type { Id } from "@/convex/_generated/dataModel";
-import { useProjects } from "@/hooks/useProjects";
-import { useTodos, type Priority } from "@/hooks/useTodos";
-
 const priorityMap: Record<PriorityLevel, Priority> = {
   Low: "low",
   Medium: "medium",
@@ -27,11 +25,20 @@ const priorityMap: Record<PriorityLevel, Priority> = {
 };
 
 const Add = () => {
-  // Convex
-  const { add } = useTodos({ skip: true }); // in questa schermata facciamo solo mutate
   const { list: projects } = useProjects();
+  const { add } = useTodos();
 
-  // stato form
+  const [selectedProjectId, setSelectedProjectId] = useState<
+    string | undefined
+  >(undefined);
+
+  // Imposta automaticamente il primo progetto quando arrivano i dati
+  useEffect(() => {
+    if (!selectedProjectId && projects && projects.length > 0) {
+      setSelectedProjectId(String(projects[0]._id));
+    }
+  }, [projects, selectedProjectId]);
+
   const [projectName, setProjectName] = useState("");
   const [description, setDescription] = useState("");
 
@@ -40,11 +47,6 @@ const Add = () => {
 
   const [priority, setPriority] = useState<PriorityLevel>("Medium");
   const [submitting, setSubmitting] = useState(false);
-
-  // Id del progetto selezionato (tipizzato Convex)
-  const [selectedProjectId, setSelectedProjectId] = useState<
-    Id<"projects"> | undefined
-  >(undefined);
 
   const canSubmit = useMemo(
     () => projectName.trim().length > 0 && !!startDate && !!priority,
@@ -77,7 +79,8 @@ const Add = () => {
         priority: priorityMap[priority],
         description: description.trim() || undefined,
         endDate: endMs,
-        projectId: selectedProjectId, // ✅ ora è Id<"projects"> | undefined
+        // Convex Id<"projects"> viene serializzato come stringa dal client
+        projectId: selectedProjectId as any, // se hai il tipo Id<"projects"> importa e tipizza meglio
       });
 
       // reset soft
@@ -86,7 +89,7 @@ const Add = () => {
       setPriority("Medium");
       setStartDate(new Date());
       setEndDate(new Date());
-      setSelectedProjectId(undefined);
+      // non resetto il project per comodità dell’utente
 
       Alert.alert("Success", "Task created.");
     } catch (err: any) {
@@ -98,11 +101,11 @@ const Add = () => {
     add,
     canSubmit,
     description,
+    endDate,
     priority,
     projectName,
     selectedProjectId,
     startDate,
-    endDate,
     submitting,
   ]);
 
@@ -117,15 +120,10 @@ const Add = () => {
           <View>
             <SharedHeader title="Add Task" />
 
-            {/* Usa il dropdown collegato a Convex.
-               Al select, mappa l'id stringa del dropdown al vero _id Convex */}
+            {/* Dropdown controllato */}
             <TaskGroupDropdown
-              onSelect={(g) => {
-                const p = (projects ?? []).find(
-                  (proj) => String(proj._id) === g.id
-                );
-                if (p) setSelectedProjectId(p._id);
-              }}
+              selectedGroupId={selectedProjectId}
+              onSelect={(g) => setSelectedProjectId(g.id)}
             />
 
             <View

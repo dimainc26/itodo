@@ -1,57 +1,67 @@
-import { createDropdownStyles } from "@/assets/styles/dropdown.style";
-import { useProjects } from "@/hooks/useProjects";
-import { useTheme } from "@/hooks/useTheme";
-import { Group } from "@/models/groupType";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { FlatList, Modal, Text, TouchableOpacity, View } from "react-native";
+
+import { createDropdownStyles } from "@/assets/styles/dropdown.style";
+import { useProjects, type IconFamily } from "@/hooks/useProjects";
+import { useTheme } from "@/hooks/useTheme";
+import { renderProjectIcon } from "@/utils/renderProjectIcon";
+import { router } from "expo-router";
 import SquircleButton from "./ui/SquircleButton";
 
-type Props = {
-  groups?: Group[];
-  selectedGroupId?: string;
-  onSelect?: (group: Group) => void;
+/** Se hai già un tipo Group centralizzato, riusa quello */
+export type Group = {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
 };
 
-const TaskGroupDropdown = ({ groups, selectedGroupId, onSelect }: Props) => {
+type Props = {
+  /** ID selezionato, gestito dal parent */
+  selectedGroupId?: string;
+  /** Callback richiesta: il parent deve fare il set dello stato */
+  onSelect: (group: Group) => void;
+  /** fallback opzionale: se lo passi, bypassa Convex */
+  groups?: Group[];
+};
+
+const TaskGroupDropdown = ({ selectedGroupId, onSelect, groups }: Props) => {
   const { colors } = useTheme();
   const styles = createDropdownStyles(colors);
   const { list: projects } = useProjects();
+  const [open, setOpen] = useState(false);
 
+  /** Se non ci passano `groups`, mappiamo i projects da Convex */
   const dbGroups: Group[] = useMemo(() => {
     if (groups && groups.length > 0) return groups;
     if (!projects) return [];
     return projects.map((p) => ({
       id: String(p._id),
       name: p.name,
-      icon: <Ionicons name={p.iconType as any} size={16} color={p.color} />,
+      icon: renderProjectIcon({
+        family: p.iconFamily as IconFamily,
+        name: p.iconType,
+        color: p.color,
+        size: 16,
+      }),
     }));
   }, [groups, projects]);
 
-  const [internalSelectedId, setInternalSelectedId] = useState<
-    string | undefined
-  >(selectedGroupId);
-  const [open, setOpen] = useState(false);
-
+  /** Se non c’è ancora una selezione, selezioniamo il primo (e notifichiamo il parent) */
   useEffect(() => {
-    if (!selectedGroupId && dbGroups.length > 0 && !internalSelectedId) {
-      const first = dbGroups[0];
-      setInternalSelectedId(first.id);
-      onSelect?.(first);
+    if (!selectedGroupId && dbGroups.length > 0) {
+      onSelect(dbGroups[0]);
     }
-  }, [dbGroups, internalSelectedId, onSelect, selectedGroupId]);
+  }, [dbGroups, onSelect, selectedGroupId]);
 
-  const effectiveSelectedId = selectedGroupId ?? internalSelectedId;
-
+  /** Trova il gruppo selezionato solo in base a selectedGroupId (controllato) */
   const selectedGroup = useMemo(
-    () => dbGroups.find((g) => g.id === effectiveSelectedId),
-    [dbGroups, effectiveSelectedId]
+    () => dbGroups.find((g) => g.id === selectedGroupId),
+    [dbGroups, selectedGroupId]
   );
 
   const handlePick = (g: Group) => {
-    if (!selectedGroupId) setInternalSelectedId(g.id);
-    onSelect?.(g);
+    onSelect(g); // il parent deve fare setSelectedId(g.id)
     setOpen(false);
   };
 
@@ -102,28 +112,47 @@ const TaskGroupDropdown = ({ groups, selectedGroupId, onSelect }: Props) => {
             <FlatList
               data={dbGroups}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.option}
-                  onPress={() => handlePick(item)}
-                >
-                  <View
-                    style={[
-                      styles.iconWrapper,
-                      { backgroundColor: colors.primary + "20" },
-                    ]}
-                  >
-                    {item.icon}
-                  </View>
-                  <Text style={[styles.optionText, { color: colors.text }]}>
-                    {item.name}
-                  </Text>
-                </TouchableOpacity>
-              )}
               ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+              renderItem={({ item }) => {
+                const isSelected = item.id === selectedGroupId;
+                return (
+                  <TouchableOpacity
+                    style={[
+                      styles.option,
+                      isSelected && {
+                        borderBottomWidth: 2,
+                        borderBottomColor: colors.primary,
+                      },
+                    ]}
+                    onPress={() => handlePick(item)}
+                  >
+                    <View
+                      style={[
+                        styles.iconWrapper,
+                        { backgroundColor: colors.primary + "20" },
+                      ]}
+                    >
+                      {item.icon}
+                    </View>
+                    <Text style={[styles.optionText, { color: colors.text }]}>
+                      {item.name}
+                    </Text>
+                    {isSelected && (
+                      <Ionicons
+                        name="checkmark"
+                        size={18}
+                        color={colors.primary}
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              }}
               ListFooterComponent={() => (
                 <SquircleButton
-                  onPress={() => router.push("/in/documents")}
+                  onPress={() => {
+                    router.push("/in/creator/project");
+                    setOpen(false);
+                  }}
                   title="+ New Project"
                 />
               )}

@@ -12,6 +12,7 @@ export type TaskType = {
   status: TaskStatus;
   iconType: "briefcase-outline" | "document-text-outline" | "book-outline";
   color: string;
+  iconFamily?: "ionicons" | "feather" | "materialCommunity";
 };
 
 export type TaskItemProps = TaskType;

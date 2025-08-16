@@ -1,7 +1,7 @@
 // hooks/useProjects.ts
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 
 export type ProjectStatus = "to-do" | "in progress" | "done";
 export type IconFamily = "ionicons" | "feather" | "materialCommunity";
@@ -13,6 +13,7 @@ export type AddProjectInput = {
   color: string; // es. "#8B5CF6"
   status?: ProjectStatus;
   description?: string;
+  imageStorageId?: Id<"_storage">;
 };
 
 export type UpdateProjectPayload = Partial<{
@@ -20,12 +21,20 @@ export type UpdateProjectPayload = Partial<{
   iconType: string;
   color: string;
   status: ProjectStatus;
-  // description: string;
+  description: string;
+  imageStorageId?: Id<"_storage">;
 }>;
 
 type Filters = {
   skip?: boolean;
 };
+
+export type ProjectWithUrl =
+  ReturnType<typeof useProjects> extends { list: infer L }
+    ? L extends (infer T)[]
+      ? T & { imageUrl?: string | null }
+      : never
+    : never;
 
 export const useProjects = (filters?: Filters) => {
   const shouldSkip = !!filters?.skip;
@@ -37,6 +46,8 @@ export const useProjects = (filters?: Filters) => {
   const _delete = useMutation(api.projects.deleteProject);
   const _clearAll = useMutation(api.projects.clearAllProjects);
 
+  const _getUploadUrl = useAction(api.images.getUploadUrl);
+
   return {
     list, // undefined durante il loading
     add: (input: AddProjectInput) => _add(input),
@@ -44,5 +55,6 @@ export const useProjects = (filters?: Filters) => {
       _update({ id, payload }),
     remove: (id: Id<"projects">) => _delete({ id }),
     clearAll: () => _clearAll(),
+    getUploadUrl: () => _getUploadUrl({}),
   };
 };

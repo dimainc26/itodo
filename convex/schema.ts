@@ -12,7 +12,7 @@ export default defineSchema({
       v.literal("feather"),
       v.literal("materialCommunity")
     ),
-    iconType: v.string(), // es. "briefcase-outline" (ionicons) o "briefcase" (feather)
+    iconType: v.string(),
     color: v.string(), // es. "#8B5CF6"
     status: v.union(
       v.literal("to-do"),
@@ -20,6 +20,7 @@ export default defineSchema({
       v.literal("done")
     ),
     createdAt: v.number(), // Date.now()
+    imageStorageId: v.optional(v.id("_storage")),
   }).index("by_status", ["status"]),
 
   todos: defineTable({

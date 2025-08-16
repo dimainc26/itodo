@@ -8,48 +8,61 @@ const StatusV = v.union(
   v.literal("done")
 );
 
-/** Librerie icone supportate */
-const IconFamilyV = v.union(
-  v.literal("ionicons"),
-  v.literal("feather"),
-  v.literal("materialCommunity") // puoi aggiungerne altre qui
-);
-
-/** Crea progetto */
-export const addProject = mutation({
-  args: {
-    name: v.string(),
-    iconFamily: IconFamilyV, // ✅ nuovo campo obbligatorio
-    iconType: v.string(), // es. "briefcase-outline" (ionicons) o "briefcase" (feather)
-    color: v.string(), // es. "#8B5CF6"
-    status: v.optional(StatusV),
-    description: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const id = await ctx.db.insert("projects", {
-      name: args.name,
-      iconFamily: args.iconFamily, // ✅ persistito
-      iconType: args.iconType,
-      color: args.color,
-      status: args.status ?? "to-do",
-      description: args.description ?? "",
-      createdAt: Date.now(),
-    });
-    return id;
+/** URL presigned per caricare un file su Convex storage */
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.storage.generateUploadUrl();
   },
 });
 
-/** Aggiorna (patch) progetto */
+/** Crea progetto (immagine opzionale) */
+export const addProject = mutation({
+  args: {
+    name: v.string(),
+    description: v.optional(v.string()),
+    iconFamily: v.union(
+      v.literal("ionicons"),
+      v.literal("feather"),
+      v.literal("materialCommunity")
+    ),
+    iconType: v.string(),
+    color: v.string(),
+    status: v.optional(StatusV),
+    imageStorageId: v.optional(v.id("_storage")), // ✅
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("projects", {
+      name: args.name,
+      description: args.description,
+      iconFamily: args.iconFamily,
+      iconType: args.iconType,
+      color: args.color,
+      status: args.status ?? "to-do",
+      createdAt: Date.now(),
+      imageStorageId: args.imageStorageId,
+    });
+  },
+});
+
+/** Patch progetto (compresa immagine) */
 export const updateProject = mutation({
   args: {
     id: v.id("projects"),
     payload: v.object({
       name: v.optional(v.string()),
-      iconFamily: v.optional(IconFamilyV), // ✅ aggiornabile
+      description: v.optional(v.string()),
+      iconFamily: v.optional(
+        v.union(
+          v.literal("ionicons"),
+          v.literal("feather"),
+          v.literal("materialCommunity")
+        )
+      ),
       iconType: v.optional(v.string()),
       color: v.optional(v.string()),
       status: v.optional(StatusV),
-      description: v.optional(v.string()),
+      imageStorageId: v.optional(v.id("_storage")), // ✅
     }),
   },
   handler: async (ctx, { id, payload }) => {
@@ -59,6 +72,7 @@ export const updateProject = mutation({
   },
 });
 
+/** Elimina singolo */
 export const deleteProject = mutation({
   args: { id: v.id("projects") },
   handler: async (ctx, { id }) => {
@@ -66,7 +80,9 @@ export const deleteProject = mutation({
   },
 });
 
+/** Elimina tutti (attenzione) */
 export const clearAllProjects = mutation({
+  args: {},
   handler: async (ctx) => {
     const projs = await ctx.db.query("projects").collect();
     for (const p of projs) await ctx.db.delete(p._id);
@@ -74,9 +90,19 @@ export const clearAllProjects = mutation({
   },
 });
 
+/** Lista progetti + URL immagine risolta (se presente) */
 export const getProjects = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("projects").order("desc").collect();
+    const items = await ctx.db.query("projects").order("desc").collect();
+    const withUrls = await Promise.all(
+      items.map(async (p) => ({
+        ...p,
+        imageUrl: p.imageStorageId
+          ? await ctx.storage.getUrl(p.imageStorageId)
+          : null, // ✅
+      }))
+    );
+    return withUrls;
   },
 });
