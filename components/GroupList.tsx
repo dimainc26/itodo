@@ -1,11 +1,11 @@
 import { createDocumentsStyle } from "@/assets/styles/documents.style";
 import SquircleButton from "@/components/ui/SquircleButton";
 import { useTheme } from "@/hooks/useTheme";
-import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
-import { FlatList, Text, View } from "react-native";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
 
 import { useProjects, type IconFamily } from "@/hooks/useProjects";
+import { renderProjectIcon } from "@/utils/renderProjectIcon";
 import { router } from "expo-router";
 
 const GroupList = () => {
@@ -15,23 +15,7 @@ const GroupList = () => {
   // Convex
   const { list: projects } = useProjects();
 
-  const renderProjectIcon = (
-    family: IconFamily,
-    name: string,
-    color: string
-  ) => {
-    switch (family) {
-      case "feather":
-        return <Feather name={name as any} size={20} color={color} />;
-      case "materialCommunity":
-        return (
-          <MaterialCommunityIcons name={name as any} size={20} color={color} />
-        );
-      case "ionicons":
-      default:
-        return <Ionicons name={name as any} size={20} color={color} />;
-    }
-  };
+  // TODO: fare un unico componente composable per GroupList.tsx e TaskGroupCard
 
   return (
     <View style={styles.container}>
@@ -40,16 +24,25 @@ const GroupList = () => {
         keyExtractor={(item) => String(item._id)}
         contentContainerStyle={styles.listContainer}
         renderItem={({ item }) => (
-          <View style={styles.groupItem}>
+          <TouchableOpacity
+            style={styles.groupItem}
+            activeOpacity={0.8}
+            onPress={() =>
+              router.push({
+                pathname: "/in/(tabs)/documents/projects/[id]",
+                params: { id: String(item._id) },
+              })
+            }
+          >
             <View style={styles.iconWrapper}>
-              {renderProjectIcon(
-                item.iconFamily as IconFamily,
-                item.iconType,
-                item.color
-              )}
+              {renderProjectIcon({
+                family: item.iconFamily as IconFamily,
+                name: item.iconType,
+                color: item.color,
+              })}
             </View>
             <Text style={styles.groupName}>{item.name}</Text>
-          </View>
+          </TouchableOpacity>
         )}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListFooterComponent={() => (

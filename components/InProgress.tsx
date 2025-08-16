@@ -1,4 +1,5 @@
-import type { Doc } from "@/convex/_generated/dataModel";
+import { lighten } from "@/functions/UI/lighten";
+import { computeProgress } from "@/functions/computeProgress";
 import { useProjects } from "@/hooks/useProjects";
 import { useTheme } from "@/hooks/useTheme";
 import { useTodos } from "@/hooks/useTodos";
@@ -7,35 +8,6 @@ import React, { useMemo } from "react";
 import { ScrollView, View } from "react-native";
 import InProgressCard from "./InProgressCard";
 import { SectionHeader } from "./SectionHeader";
-
-// schiarisce un hex verso il bianco
-const lighten = (hex: string, p: number) => {
-  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!m) return hex;
-  const toDec = (s: string) => parseInt(s, 16);
-  const toHex = (n: number) =>
-    Math.min(255, Math.max(0, Math.round(n)))
-      .toString(16)
-      .padStart(2, "0");
-  const r = toDec(m[1]),
-    g = toDec(m[2]),
-    b = toDec(m[3]);
-  const R = toHex(r + (255 - r) * p);
-  const G = toHex(g + (255 - g) * p);
-  const B = toHex(b + (255 - b) * p);
-  return `#${R}${G}${B}`;
-};
-
-// Calcola progresso (%) da todos del progetto
-const computeProgress = (allTodos: Doc<"todos">[], projectId: string) => {
-  const inProject = allTodos.filter(
-    (t) => String(t.projectId ?? "") === projectId
-  );
-  const total = inProject.length;
-  if (total === 0) return 0;
-  const done = inProject.filter((t) => t.isCompleted).length;
-  return Math.round((done / total) * 100);
-};
 
 const InProgress = () => {
   const { colors } = useTheme();
@@ -52,7 +24,7 @@ const InProgress = () => {
   const cards = useMemo(() => {
     if (!todos) return [];
     return inProgressProjects.map((p) => {
-      const progress = computeProgress(todos, String(p._id));
+      const { pct: progress } = computeProgress(todos, String(p._id));
       const base = p.color || "#3B82F6";
       return {
         key: String(p._id),
@@ -68,7 +40,7 @@ const InProgress = () => {
         iconType: p.iconType,
         progress,
         backgroundColor: lighten(base, 0.9),
-        iconColor: lighten(base, 0.75),
+        iconColor: base,
         progressColor: base,
       };
     });

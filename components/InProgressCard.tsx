@@ -1,3 +1,4 @@
+import { lighten } from "@/functions/UI/lighten";
 import { useTheme } from "@/hooks/useTheme";
 import { createInProgressStyles } from "@assets/styles/inProgress.style";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -9,7 +10,7 @@ type IconFamily = "ionicons" | "feather" | "materialCommunity";
 interface Props {
   title: string;
   projectType: string;
-  iconFamily: IconFamily; // nuova prop
+  iconFamily: IconFamily;
   iconType: string; // es. "folder-outline"
   progress: number;
   backgroundColor: string;
@@ -30,33 +31,21 @@ const InProgressCard = ({
   const { colors } = useTheme();
   const styles = createInProgressStyles(colors);
 
-  const renderIcon = () => {
-    switch (iconFamily) {
+  const renderProjectIcon = (
+    family: IconFamily,
+    name: string,
+    color: string
+  ) => {
+    switch (family) {
       case "feather":
-        return (
-          <Feather
-            name={iconType as keyof typeof Feather.glyphMap}
-            size={16}
-            color={colors.primary}
-          />
-        );
+        return <Feather name={name as any} size={16} color={color} />;
       case "materialCommunity":
         return (
-          <MaterialCommunityIcons
-            name={iconType as keyof typeof MaterialCommunityIcons.glyphMap}
-            size={16}
-            color={colors.primary}
-          />
+          <MaterialCommunityIcons name={name as any} size={16} color={color} />
         );
       case "ionicons":
       default:
-        return (
-          <Ionicons
-            name={iconType as keyof typeof Ionicons.glyphMap}
-            size={16}
-            color={colors.primary}
-          />
-        );
+        return <Ionicons name={name as any} size={16} color={color} />;
     }
   };
 
@@ -64,8 +53,13 @@ const InProgressCard = ({
     <View style={[styles.card, { backgroundColor }]}>
       <View style={styles.cardHeader}>
         <Text style={styles.cardProjectType}>{projectType}</Text>
-        <View style={[styles.cardIconWrapper, { backgroundColor: iconColor }]}>
-          {renderIcon()}
+        <View
+          style={[
+            styles.cardIconWrapper,
+            { backgroundColor: lighten(iconColor, 0.75) },
+          ]}
+        >
+          {renderProjectIcon(iconFamily, iconType, iconColor)}
         </View>
       </View>
       <Text style={styles.cardTitle}>{title}</Text>

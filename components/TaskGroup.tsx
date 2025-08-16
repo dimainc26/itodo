@@ -1,43 +1,67 @@
-import { CalendarSVG, HomeSVG, UserSVG } from "@/data/icons";
+// components/TaskGroup.tsx
 import TaskGroupCard from "@components/TaskGroupCard";
-import React from "react";
-import { FlatList, View } from "react-native";
+import React, { useMemo } from "react";
+import { FlatList, Text, View } from "react-native";
 import { SectionHeader } from "./SectionHeader";
 
-const DATA = [
-  {
-    id: "1",
-    title: "Office Project",
-    subtitle: "23 Tasks",
-    icon: <HomeSVG width={24} height={24} fill="#EC4899" />,
-    progress: 70,
-    color: "#EC4899",
-  },
-  {
-    id: "2",
-    title: "Personal Project",
-    subtitle: "30 Tasks",
-    icon: <UserSVG width={24} height={24} fill="#8B5CF6" />,
-    progress: 52,
-    color: "#8B5CF6",
-  },
-  {
-    id: "3",
-    title: "Daily Study",
-    subtitle: "30 Tasks",
-    icon: <CalendarSVG width={24} height={24} fill="#F97316" />,
-    progress: 87,
-    color: "#F97316",
-  },
-];
+import { computeProgress } from "@/functions/computeProgress";
+import { useProjects } from "@/hooks/useProjects";
+import { useTheme } from "@/hooks/useTheme";
+import { useTodos } from "@/hooks/useTodos";
+import { renderProjectIcon } from "@/utils/renderProjectIcon";
 
 const TaskGroup = () => {
+  const { colors } = useTheme();
+  const { list: projects } = useProjects();
+  const { list: todos } = useTodos();
+
+  // prepara i dati per la UI
+  const data = useMemo(() => {
+    if (!projects) return [];
+    return projects.map((p) => {
+      const { total, pct } = computeProgress(todos, String(p._id));
+      return {
+        id: String(p._id),
+        title: p.name,
+        subtitle: `${total} ${total === 1 ? "Task" : "Tasks"}`,
+        icon: renderProjectIcon({
+          family: p.iconFamily as any,
+          name: p.iconType,
+          color: p.color,
+          size: 20,
+        }),
+        progress: pct,
+        color: p.color,
+      };
+    });
+  }, [projects, todos]);
+
+  if (!projects) {
+    return (
+      <View style={{ marginTop: 12, paddingHorizontal: 24 }}>
+        <SectionHeader title="Task Groups" badgeCount={0} />
+        <Text style={{ color: colors.textMuted, marginTop: 8 }}>Loading…</Text>
+      </View>
+    );
+  }
+
+  if (projects.length === 0) {
+    return (
+      <View style={{ marginTop: 12, paddingHorizontal: 24 }}>
+        <SectionHeader title="Task Groups" badgeCount={0} />
+        <Text style={{ color: colors.textMuted, marginTop: 8 }}>
+          Nessun progetto ancora. Creane uno per iniziare.
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={{ marginTop: 12 }}>
-      <SectionHeader title="Task Groups" badgeCount={DATA.length} />
+      <SectionHeader title="Task Groups" badgeCount={projects.length} />
 
       <FlatList
-        data={DATA}
+        data={data}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TaskGroupCard
@@ -51,7 +75,7 @@ const TaskGroup = () => {
         contentContainerStyle={{}}
         style={{ paddingHorizontal: 24 }}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        scrollEnabled={false} // rimuovi se vuoi che scrolli indipendentemente dal resto
+        scrollEnabled={false}
       />
     </View>
   );
